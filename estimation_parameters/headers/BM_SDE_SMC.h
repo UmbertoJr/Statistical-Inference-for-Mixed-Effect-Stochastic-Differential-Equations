@@ -53,8 +53,9 @@ namespace BM_SDE_SMC {
 		
 		// ho fissato la dimensione della matrice per essere più rapido
 		
-		SMC(int& subj, double* tzeta) {
-			Tzeta = tzeta;
+		SMC(int& subj) {
+			srand(time(0)); // init seed for random
+			rng.seed(std::random_device()());
 			Subj_i = subj -1;
 			Ji = my_data::global_data.len_subj[Subj_i];		
 			
@@ -76,8 +77,8 @@ namespace BM_SDE_SMC {
 			}
 		}
 		
-		double**  run() {
-		
+		double**  run(double* tzeta) {
+			Tzeta = tzeta;
 			// ho saltato la funzione BM_SDE_ModelInitialDensityXsample(tzetai);
 			// nStateVars = sizeof(Xprototype) / sizeof(*Xprototype);
 			
@@ -181,7 +182,6 @@ namespace BM_SDE_SMC {
 			//cout << "fuori da euler step" << endl;
 			double sj = tzeta[2] * uj * sqrt(deltatime);
 			std::normal_distribution<double> distribution(0, 1.0);
-			rng.seed(std::random_device()());
 			double number = distribution(rng);  // ho cambiato il generator   distribution(generator)
 			//cout << number;
 			double xij = uj + sj * number;
@@ -254,8 +254,13 @@ namespace BM_SDE_SMC {
 					return i;
 				f -= PARTICLEWS[i];
 			}
-			cout << "should never get here"<< endl;
-			return my_random_ptr(sum);
+			double s=0;
+			/*for (int i = 0; i < K; i++) {
+				s += PARTICLEWS[i];
+			}*/
+			//cout << "should never get here  "<< sum  <<" s : "<< s << " f : " << f << endl;
+			return K - 1;
+			//return my_random_ptr(sum);
 		}
 
 	};

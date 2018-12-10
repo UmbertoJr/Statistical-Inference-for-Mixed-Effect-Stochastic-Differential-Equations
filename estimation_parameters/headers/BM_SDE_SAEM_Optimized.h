@@ -31,9 +31,14 @@ namespace BM_SDE_SAEM_Optimized {
 		// inizializza le PHI e le X per tutti i soggetti
 		for (int subj = 1; subj <= my_data::global_data.sc_nSubjects; ++subj) {
 			cout << subj << "\t" << my_data::global_data.len_subj[subj-1] << "\n"; //printa i risultati per debug
-			hidden_sample = pmcmc.run(subj);  // le variabili tzeta vengono aggiornate in BM_SDE_ModelTheta2Tzeta
-			// devo capire cosa fare con i vettori dinamici dichiarati dento pmcmc
 
+			//static clock_t start = clock();  // fa partire il timer 
+			hidden_sample = pmcmc.run(subj);  // le variabili tzeta vengono aggiornate in BM_SDE_ModelTheta2Tzeta
+			/*static clock_t end = clock();  // stop per il timer e print del tempo algoritmo
+			static double time = (double)(end - start) / CLOCKS_PER_SEC;
+			cout << "\n\n######  time execution PMCMC is: " << time << "  #######" << endl;
+			*/
+			// devo capire cosa fare con i vettori dinamici dichiarati dento pmcmc
 			parametri.BM_SDE_ModelPhi2Tzeta(hidden_sample[1]);
 
 			cout << "fuori dal pmcmc, soggetto numero " << subj << endl;
