@@ -38,19 +38,23 @@ namespace BM_SDE_SMC {
 	
 	struct SMC {
 		//double Xprototype = 1E-07;
-		static const int nStateVars = 1, K = 5;   //questa parte va inizializzata a seconda del modello
+		static const int nStateVars = 1, K = 25;   //questa parte va inizializzata a seconda del modello
 		int Ji, Subj_i;
 		float Delta = 0.5;
-		double MargDistrY, SumWeigths, pYgivenX;
+		double SumWeigths, pYgivenX;
+		double *MargDistrY = new double;
 		double  Xj_1, Xj;
 		my_matrix* PARTICLEXS_0[K], *PARTICLEXS_1[K],  *ptr_PART[K];
 		double PARTICLEWS[K];
-		std::default_random_engine generator;
+		//std::default_random_engine generator;
+		std::mt19937 rng;
+		double * X_vec, * Tzeta;
 		
 		
 		// ho fissato la dimensione della matrice per essere più rapido
 		
-		SMC(int& subj) {
+		SMC(int& subj, double* tzeta) {
+			Tzeta = tzeta;
 			Subj_i = subj -1;
 			Ji = my_data::global_data.len_subj[Subj_i];		
 			
@@ -72,7 +76,7 @@ namespace BM_SDE_SMC {
 			}
 		}
 		
-		void run() {
+		double**  run() {
 		
 			// ho saltato la funzione BM_SDE_ModelInitialDensityXsample(tzetai);
 			// nStateVars = sizeof(Xprototype) / sizeof(*Xprototype);
@@ -80,14 +84,14 @@ namespace BM_SDE_SMC {
 			
 			//				Computation for time 0
 			SumWeigths = 0;
-			MargDistrY = 1;
+			*MargDistrY = 1;
 			for (int k = 0; k < K; ++k) {
 				Xj = 1e-7;  // praticamente non usato BM_SDE_ModelInitialDensityXsample(tzetai);   Xprototype
 				
 				(*ptr_PART[k]).insert_value_in_row_col(Xj, 0, 0);
 
 				//double px0 = 1;  //funzione praticamente inutile BM_SDE_ModelInitialDensityXevaluate
-				pYgivenX = BM_SDE_ModelCondDensityYgivenXevaluate(my_data::global_data.TIMEi[Subj_i][0], Xj, parametri_tmp.tzeta[3]);
+				pYgivenX = BM_SDE_ModelCondDensityYgivenXevaluate(my_data::global_data.TIMEi[Subj_i][0], Xj, Tzeta[3]);
 
 				//cout << Subj_i + 1 << "\t" << k << "\t" << pYgivenX << endl;  // DEBUG
 				// qXgivenYX_1 non lo considero visto che 1
@@ -95,31 +99,30 @@ namespace BM_SDE_SMC {
 				SumWeigths += PARTICLEWS[k];
 			}
 
-			MargDistrY *= SumWeigths / K;
-			cout << Subj_i + 1 << "\t" << MargDistrY << endl;
+			*MargDistrY *= SumWeigths / K;
+			//cout << Subj_i + 1 << "\t" << MargDistrY << endl;
 
 			//               Computation for following times
 			for (int time = 1; time < my_data::global_data.len_subj[Subj_i]; ++time) {
 				
 				SumWeigths = 0;
-				cout << Subj_i + 1 << "\t" << time << endl;
+				//cout << Subj_i + 1 << "\t" << time << endl;
 				for (int k = 0; k < K; ++k) {
 					Xj_1 = (*ptr_PART[k]).get(0,time-1);
 					//cout <<"\t" << Xj_1 << " -->";
 
 					double tj = my_data::global_data.TIMEi[Subj_i][time], tj_1 = my_data::global_data.TIMEi[Subj_i][time - 1];
-					double* tzetai = parametri.tzeta;  // questo passaggio deve essere aggiornato ad ogni iterazione del PMCMC
-					Xj = BM_SDE_ModelTransitionDensityXsample(Xj_1, tj , tj_1, tzetai);
+					Xj = BM_SDE_ModelTransitionDensityXsample(Xj_1, tj , tj_1, Tzeta);
 					(*ptr_PART[k]).insert_value_in_row_col(Xj, 0, time);
 					
 
-					pYgivenX = BM_SDE_ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[Subj_i][time], Xj, tzetai[3]);
+					pYgivenX = BM_SDE_ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[Subj_i][time], Xj, Tzeta[3]);
 					//cout << Xj << " \twith prob --> "<< pYgivenX << "\t";		// DEBUG
 					PARTICLEWS[k] = pYgivenX;
 					SumWeigths += PARTICLEWS[k];
 				}
 				//cout << SumWeigths << endl;
-				
+				*MargDistrY *= SumWeigths / K;
 				
 
 
@@ -130,9 +133,31 @@ namespace BM_SDE_SMC {
 				//cout << time << endl;
 				
 			}
-			
+			//cout << Subj_i + 1 << "\t" << MargDistrY << endl;
+
+			X_vec = BM_sample_X(SumWeigths, Ji);
+			double ** ptr_ret = new double*[2]; 
+			ptr_ret[0] = X_vec; ptr_ret[1] = MargDistrY;
+			// << "pointer to ret " << ptr_ret << " pointer to 0 " << ptr_ret[0] << " -> "<< (ptr_ret[0])[3] <<
+				//" pointer to 1 " << ptr_ret[1] << " -> " << ptr_ret[1][3] << endl;
+			return ptr_ret;
+
 		}
 			
+		double* BM_sample_X(double& sum, int& len_s) {
+			// questo passaggio è leggermente complicato devo spiegarlo bene
+			double* X  = new double[len_s];
+			int j = my_random_ptr(sum);
+			for (int t=0; t < len_s; ++t){
+				//cout << "random pointer : " << j <<  " pointer # " << PARTICLEXS_0[j] << endl; // DEBUG
+				// qui si copiano gli elementi dalle matrici indicate da ptr_PART alle matrici indicate da PARTICLEXS_1
+				X[t] = (*ptr_PART[j]).get(0, t);
+				//cout << X[t] << "\t";
+			}
+			//cout << endl;
+			return X;
+		}
+
 
 		double BM_SDE_ModelCondDensityYgivenXevaluate(double& Y, double& X, double& sigma) {
 			if (sigma < 0) {
@@ -156,9 +181,10 @@ namespace BM_SDE_SMC {
 			//cout << "fuori da euler step" << endl;
 			double sj = tzeta[2] * uj * sqrt(deltatime);
 			std::normal_distribution<double> distribution(0, 1.0);
-			double number = distribution(generator);
+			rng.seed(std::random_device()());
+			double number = distribution(rng);  // ho cambiato il generator   distribution(generator)
 			//cout << number;
-			double xij = uj + sj * distribution(generator);
+			double xij = uj + sj * number;
 			if (xij < 1e-100) {
 				xij = BM_SDE_ModelTransitionDensityXsample(xXj_1, Tj, Tj_1, tzeta);
 			}
@@ -193,11 +219,11 @@ namespace BM_SDE_SMC {
 		void BM_mnrnd(double& sum,  int& time) {
 			// questo passaggio è leggermente complicato devo spiegarlo bene
 			if (time % 2 == 1) {
-				cout << "si va dai pointers 0 a quelli 1" << endl;
+				//cout << "si va dai pointers 0 a quelli 1" << endl;
 				// si va dai pointers 0 a quelli 1
 				for (int k = 0; k < K; ++k) {
 					int j = my_random_ptr(sum);
-					cout << "random pointer : " << j <<  " pointer # " << PARTICLEXS_0[j] << endl;
+					//cout << "random pointer : " << j <<  " pointer # " << PARTICLEXS_0[j] << endl; // DEBUG
 					// qui si copiano gli elementi dalle matrici indicate da ptr_PART alle matrici indicate da PARTICLEXS_1
 					(*PARTICLEXS_1[k]).copy_from((*PARTICLEXS_0[j]).M);
 					ptr_PART[k] = PARTICLEXS_1[k];
@@ -207,11 +233,11 @@ namespace BM_SDE_SMC {
 
 			}
 			else {
-				cout << "si va dai pointers 1 a quelli 0" << endl;
+				//cout << "si va dai pointers 1 a quelli 0" << endl;
 				// si va dai pointers 1 a quelli 0
 				for (int k = 0; k < K; ++k) {
 					int j = my_random_ptr(sum);
-					cout << "random pointer : " << j << " pointer # " << PARTICLEXS_1[j] << endl;
+					//cout << "random pointer : " << j << " pointer # " << PARTICLEXS_1[j] << endl;  // DEBUG
 					// qui si copiano gli elementi dalle matrici indicate da ptr_PART alle matrici indicate da PARTICLEXS_0
 					(*PARTICLEXS_0[k]).copy_from((*PARTICLEXS_1[j]).M);
 					ptr_PART[k] = PARTICLEXS_0[k];

@@ -114,6 +114,11 @@ public:
 		phi[1] = tzeta[1];
 	};
 
+	void BM_SDE_ModelPhi2Tzeta(double * phii_sampled) {
+		// questo passaggio deve passare anche nel PMCMC ???
+		tzeta[0] = phii_sampled[0]; tzeta[1] = phii_sampled[1];
+	}
+
 	void ModelTzeta2Phi(double* tzeta) {
 		phi[0] = tzeta[0];
 		phi[1] = tzeta[1];
