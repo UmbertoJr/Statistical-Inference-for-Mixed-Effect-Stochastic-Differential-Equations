@@ -33,7 +33,7 @@ namespace BM_SDE_SAEM_Optimized {
 			cout << subj << "\t" << my_data::global_data.len_subj[subj-1] << "\n"; //printa i risultati per debug
 
 			//static clock_t start = clock();  // fa partire il timer 
-			hidden_sample = pmcmc.run(subj);  // le variabili tzeta vengono aggiornate in BM_SDE_ModelTheta2Tzeta
+			hidden_sample = pmcmc.run(subj, parametri.theta);  // le variabili tzeta vengono aggiornate in BM_SDE_ModelTheta2Tzeta
 			/*static clock_t end = clock();  // stop per il timer e print del tempo algoritmo
 			static double time = (double)(end - start) / CLOCKS_PER_SEC;
 			cout << "\n\n######  time execution PMCMC is: " << time << "  #######" << endl;

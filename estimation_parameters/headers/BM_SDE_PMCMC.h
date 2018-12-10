@@ -12,6 +12,7 @@ public:
 	int subj, R;
 	double** X;
 	double **hidden_vec;
+	double *theta, *tzeta, *phi;
 
 	
 
@@ -32,10 +33,10 @@ public:
 		R = r;
 	}
 
-	double** run(int& Subj)
+	double** run(int& Subj, double * thetaI)
 	{
 		subj = Subj;
-		parametri.ModelTheta2Tzeta(&parametri_tmp); parametri.ModelTzeta2Phi();   // da sistemare
+		parametri.ModelTheta2Tzeta(); parametri.ModelTzeta2Phi();   // da sistemare
 		double* phi0 = parametri.phi;
 		
 		/*  // just for DEBUG
@@ -44,10 +45,10 @@ public:
 		}
 		*/
 		
-		static clock_t start = clock();  // fa partire il timer 
+		//static clock_t start = clock();  // fa partire il timer 
 										 
 		// ora bisogna creare BM_SDE_SMC
-		///*
+		
 
 		double * tzetai = parametri.tzeta; // inizializa i parametri a quelli iniziali
 		BM_SDE_SMC::SMC smc(subj);
@@ -62,11 +63,11 @@ public:
 		}
 		cout << endl;
 		*/ 
-		///*
+		/*
 		static clock_t end = clock();  // stop per il timer e print del tempo algoritmo
 		static double time = (double)(end - start) / CLOCKS_PER_SEC;
 		cout << "\n\n######  time execution SMC is: " << time << "  #######" << endl;
-		//*/
+		*/
 
 		//cout << "fuori dal smc, soggetto numero " << subj << endl;
 
@@ -82,6 +83,12 @@ public:
 			Xc = smc.run(tzetac);  // controllare che i parametri vengano aggiornati
 			//cout << " X[0][4] : " << X[0][4] << " Xc[0][4] : " << Xc[0][4] << endl;
 
+			//compute probability of acceptance
+			double num_alpha = (*Xc[1]) * BM_SDE_ModelAprioriDensityPhievaluate(phic, parametri.mu, *parametri.Omega); 
+			// ho tolto BM_SDE_ModelProposalDensityPhievaluate(phi0, phic) tanto 
+			//double den_alpha = BM_SDE_ModelProposalDensityPhievaluate(phic, phi0) * (*X[1]) * BM_SDE_ModelAprioriDensityPhievaluate(phi0, mu, Omega);
+			//alpha = min(1, num_alpha / den_alpha);
+
 		}
 
 
@@ -93,6 +100,15 @@ public:
 		return  hidden_vec;
 	}
 	
+	double BM_SDE_ModelAprioriDensityPhievaluate(double * phi, double *  mu, double * Omega) {
+		cout << Omega[0] << "\t" << Omega[2] << endl;
+		return Omega[0];
+	}
+
+	double BM_SDE_ModelProposalDensityPhievaluate(double * phi0,  double * phic) {
+		// questa funzione va compilata in caso si abbia un proposal che non sia simmetrica
+		return 0;
+	}
 
 
 	void BM_SDE_ModelProposalDensityPhisample(double * phi , double * save_phi) {
@@ -101,7 +117,11 @@ public:
 		rng.seed(std::random_device()());
 		std::normal_distribution<double> distribution(0, 1.0);
 		for (int ind = 0; ind < 2; ++ind) {
-			save_phi[ind] = phi[ind] + 0.01* pow(phi[ind], 2) * distribution(rng);
+			double variance = 0.01* pow(phi[ind], 2);
+			if (variance < 1e-12) {
+				variance = 1e-12;
+			}
+			save_phi[ind] = phi[ind] + variance * distribution(rng);
 		}
 	}
 } pmcmc ;
