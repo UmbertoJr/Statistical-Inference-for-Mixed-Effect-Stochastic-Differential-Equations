@@ -11,7 +11,7 @@ namespace BM_SDE_ModelData {
 		my_data::global_data.YOBS = new double[my_data::global_data.sc_tot_num_obs];
 		my_data::global_data.SUBJ = new double[my_data::global_data.sc_tot_num_obs];
 
-		string Datafile = "time";
+		std::string Datafile = "time";
 		BM_getdata(Datafile, my_data::global_data.TIME, my_data::global_data.sc_tot_num_obs);
 		Datafile = "YOBS";
 		BM_getdata(Datafile, my_data::global_data.YOBS, my_data::global_data.sc_tot_num_obs);

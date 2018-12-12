@@ -2,13 +2,11 @@
 #include <iostream>
 #include <vector>
 #include <BM_SDE_PMCMC.h>
-#include <my_matrix_SAEM.h>
 #include <random>
 #include <dlib/optimization.h>
 #include <dlib/global_optimization.h>
 #include <BM_SDE_Stochastic_Approximation.h>
 
-using namespace std;
 
 
 
@@ -18,8 +16,12 @@ namespace BM_SDE_SAEM_Optimized {
 
 		static const int M = my_data::global_data.sc_M;
 		static const int M1 = my_data::global_data.sc_M1;
-		double lambda;
+		//double lambda;
 		column_vector theta(6);
+		for (int i = 0; i < 6; ++i) {
+			theta(i) = parametri.theta[i];
+			std::cout << theta(i) << std::endl;
+		}
 
 		// devo stare attento alla visibility di questa variabile e salvare i dati prima della fine altrimenti perdo
 		// le simulazioni...
@@ -38,7 +40,7 @@ namespace BM_SDE_SAEM_Optimized {
 		double * ptr_arr;
 		// inizializza le PHI e le X per tutti i soggetti
 		for (int subj = 1; subj <= my_data::global_data.sc_nSubjects; ++subj) {
-			cout << "\n\nsoggetto : " << subj << "\t" <<" lunghezza x : " << my_data::global_data.len_subj[subj-1] << "\n"; //printa i risultati per debug
+			//std::cout << "\n\nsoggetto : " << subj << "\t" <<" lunghezza x : " << my_data::global_data.len_subj[subj-1] << "\n"; //printa i risultati per debug
 
 			static clock_t start = clock();  // fa partire il timer 
 			hidden_sample = pmcmc.run(subj, parametri.theta);  // le variabili tzeta vengono aggiornate in BM_SDE_ModelTheta2Tzeta
@@ -51,23 +53,25 @@ namespace BM_SDE_SAEM_Optimized {
 			//cout << "fuori dal pmcmc, soggetto numero " << subj << endl;
 			
 			ptr_arr = hidden_sample[1];
-			cout << "phi sampled : " << ptr_arr[0] << "\t" << ptr_arr[1] << endl;
-			PHI.copy_phi_to_PHIALL(ptr_arr, 0,subj-1,0 );
-
+			std::cout << "phi sampled :\t" << ptr_arr[0] << "\t" << ptr_arr[1] << std::endl;
+			parametri.copy_phi_to_PHIALL(ptr_arr, 0,subj-1,0 );
+			//int start = (subj-1) * parametri.len_mu;
+			//std::cout << "phi esterno iteration  :" << 0 << "\t subj : " << subj - 1;
+			//std::cout << " \t valore inserito : " << parametri.value_in_PHI(0,subj-1, 0) << "\n";
 			ptr_arr = hidden_sample[0];  // puntatore verso i campioni X samplati nel pmcmc	
-			cout << "\nX sampled : ";
-			for (int it = 0; it < my_data::global_data.len_subj[subj - 1]; ++it) {
-				cout << ptr_arr[it] << "\t" ;
-			}
-			cout << endl;
-			cout << "\n######  time execution PMCMC is: " << time << "  #######" << endl << endl << endl;
+			//std::cout << "\nX sampled : \n";
+			//for (int it = 0; it < my_data::global_data.len_subj[subj - 1]; ++it) {
+				//std::cout << ptr_arr[it] << "\t" ;
+			//}
+			std::cout << std::endl;
+			std::cout << "\n######  time execution PMCMC is: " << time << "  #######" << "\n\n\n";
 
-			XALL.copy_newX_to_XALL(ptr_arr, 0, subj - 1, 0);
+			parametri.copy_newX_to_XALL(ptr_arr, 0, subj - 1, 0);
 			
 
 		}
 
-		for (int m = 1; m < 2; ++m) { // per ora faccio una sola iterazione 
+		for (int m = 1; m < 3; ++m) { // per ora faccio una sola iterazione 
 			parametri.ModelTheta2Tzeta(parametri.theta);
 
 			for (int subj = 1; subj <= my_data::global_data.sc_nSubjects; ++subj) {
@@ -75,16 +79,18 @@ namespace BM_SDE_SAEM_Optimized {
 				parametri.BM_SDE_ModelPhi2Tzeta(hidden_sample[1]);
 
 				ptr_arr = hidden_sample[1]; // puntatore verto i phi samplati nel pmcmc
-				PHI.copy_phi_to_PHIALL(ptr_arr, m, subj - 1, 0);
+				parametri.copy_phi_to_PHIALL(ptr_arr, m, subj - 1, 0);
+				//std::cout << "phi esterno iteration  :" << m << "\t subj : " << subj - 1;
+				//std::cout << " \t valore inserito : " << parametri.value_in_PHI(m, subj - 1, 0) << "\n";
 
 				ptr_arr = hidden_sample[0];  // puntatore verso i campioni X samplati nel pmcmc	
-				XALL.copy_newX_to_XALL(ptr_arr, m, subj - 1, 0);
+				parametri.copy_newX_to_XALL(ptr_arr, m, subj - 1, 0);
 			}
 			
 			
 			saem.add_m();
-			//double logPY = BM_SDE_Stochastic_Approximation(theta , m, lambda);
-			//cout << "logPY per iterazione " << m << " è :" << logPY << endl;
+			double logPY = saem.Stochastic_Approximation(theta);
+			std::cout << "logPY per iterazione " << m << " è :" << logPY << std::endl;
 		}
 			
 

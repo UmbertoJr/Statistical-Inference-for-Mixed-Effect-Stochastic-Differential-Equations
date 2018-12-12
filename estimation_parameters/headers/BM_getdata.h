@@ -1,16 +1,13 @@
 #pragma once
-
 #include <iostream>
 #include <sys/stat.h>
 #include <fstream>
 #include <stdio.h>
 #include <vector>
 
-using namespace std;
-
 bool exists_test(const std::string& name);
 
-int BM_getdata(string& name_file, double array[], int size) {
+int BM_getdata(std::string& name_file, double array[], int size) {
 	/* HASCOVARS = BM_getdata(datafilename)
 		
 		loads data and covariates
@@ -20,8 +17,8 @@ int BM_getdata(string& name_file, double array[], int size) {
 		OUT : HASCOVARS : 0 no, 1 yes  there are covariates
 		
 		*/
-	string path = "../data/";
-	string extention = ".txt";
+	std::string path = "../data/";
+	std::string extention = ".txt";
 	int data_present = exists_test(path + name_file + extention);
 	if (data_present == 0) {
 		printf("\n\n BM_getdata: datafile  %s%s%s  NOT FOUND \n\n",path.c_str(), name_file.c_str(), extention.c_str());
@@ -29,7 +26,7 @@ int BM_getdata(string& name_file, double array[], int size) {
 	}
 	else {
 		// qui leggo il file e lo salvo in un vettore
-		ifstream file;
+		std::ifstream file;
 		file.open(path + name_file + extention);
 		file.seekg(0);
 		double num = 0;

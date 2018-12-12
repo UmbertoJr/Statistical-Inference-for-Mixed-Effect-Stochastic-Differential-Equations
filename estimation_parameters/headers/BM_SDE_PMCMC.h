@@ -2,6 +2,7 @@
 #include <BM_SDE_SMC.h>
 #include <random>
 #include <math.h>
+#include <cmath>
 
 
 static class Pmcmc
@@ -95,7 +96,7 @@ public:
 			double den_alpha = BM_SDE_ModelProposalDensityPhievaluate(phic ,phi0) * (*X[1]) * BM_SDE_ModelAprioriDensityPhievaluate(phi0);
 			//cout << " \t" << log(*X[1]) << "\t" << den_alpha << "\t" << num_alpha- den_alpha << "\t" << exp(num_alpha - den_alpha) <<  endl;
 			//alpha = min(1, num_alpha / den_alpha);
-			double alpha = min(1, num_alpha /den_alpha);
+			double alpha = std::min( 1., num_alpha /den_alpha);
 			double U = (double)rand() / RAND_MAX;
 			if (U <= alpha) {
 				acpt_rate += 1;
@@ -112,7 +113,7 @@ public:
 			}
 		}
 
-		cout << "acceptance rate : " << acpt_rate / R << endl << endl ; 
+		//std::cout << "acceptance rate : " << acpt_rate / R << std::endl << std::endl ;
 		hidden_vec = new double* [2];
 		hidden_vec[0] = X[0]; hidden_vec[1] = phi0;
 		return  hidden_vec;

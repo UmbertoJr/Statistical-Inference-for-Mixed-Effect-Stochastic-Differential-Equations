@@ -50,9 +50,6 @@
     <ClInclude Include="headers\BM_SDE_SMC.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>
-    <ClInclude Include="headers\my_matrix_SAEM.h">
-      <Filter>File di intestazione</Filter>
-    </ClInclude>
     <ClInclude Include="headers\BM_SDE_Stochastic_Approximation.h">
       <Filter>File di intestazione</Filter>
     </ClInclude>

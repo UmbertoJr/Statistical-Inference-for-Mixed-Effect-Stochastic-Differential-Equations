@@ -3,20 +3,20 @@
 #include <string>
 #include <iostream>
 
-using namespace std;
+
 
 void check_memory_alloc(double* point);
 
 namespace directory {
 	// variabile che definisce la directory dove si trovano le cartele di input e output 
-	static string path = "./";
+	static std::string path = "./";
 
 	// questa funziona cerca la directory attuale dove gira l'algoritmo 
-	static string ExePath() {
+	static std::string ExePath() {
 		char buffer[MAX_PATH];
 		GetModuleFileName(NULL, buffer, MAX_PATH);
-		string::size_type pos = string(buffer).find_last_of("\\/");
-		return string(buffer).substr(0, pos);
+		std::string::size_type pos = std::string(buffer).find_last_of("\\/");
+		return std::string(buffer).substr(0, pos);
 	}
 
 }
@@ -37,7 +37,7 @@ namespace my_data {
 		static const int sc_NMAXOBS = 18;		// numero osservazioni massimo per soggetto
 		double TIMEi[sc_nSubjects][sc_NMAXOBS];
 		double YOBSi[sc_nSubjects][sc_NMAXOBS];
-		string MYOPT;
+		std::string MYOPT;
 		int PhiAll;
 		int XAll;
 		static const int sc_M = 10;  // numero di iterazioni da svolgere per SAEM... da leggere da input
@@ -83,7 +83,7 @@ namespace my_data {
 
 void check_memory_alloc(double* point ) {
 	if (!(point)) {
-		cout << "Error: out of memory." << endl;
+		std::cout << "Error: out of memory." << std::endl;
 		exit(1);
 	}
 }

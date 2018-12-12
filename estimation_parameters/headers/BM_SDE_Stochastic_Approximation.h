@@ -5,19 +5,9 @@ typedef dlib::matrix<double, 0, 1> column_vector;
 class SAEM {
 
 
-	static int m;
+	int m;
 	double  lambda;
-	double BM_SDE_Compute_likelihood(column_vector &theta) {
-		double logpY = 0;
-		for (int subj = 0; subj < my_data::global_data.sc_nSubjects; ++subj) {
-
-		}
-		return logpY;
-	}
-
-	double PreviousQm(column_vector & theta) {
-		return 0;
-	}
+	
 public:
 	SAEM() {
 		m = 0; lambda = 1;
@@ -25,10 +15,10 @@ public:
 
 	void add_m() {
 		++m;
-		cout << m << endl;
+		// std::cout << m << std::endl;
 	}
 
-	double BM_SDE_Stochastic_Approximation(column_vector &theta)
+	double Stochastic_Approximation(column_vector &theta)
 		/*
 			Questa funzione calcola il valore dell'approssimazione stocastica della log likelihood
 		*/
@@ -48,8 +38,8 @@ public:
 			lambda = 1 / pow((m - my_data::global_data.sc_M1), 0.8);
 		}
 
-		double logPY = BM_SDE_Compute_likelihood(theta);
-		double Qm_1 = PreviousQm(theta);
+		double logPY = parametri.BM_SDE_Compute_likelihood(theta, m);
+		double Qm_1 = parametri.PreviousQm(theta);
 		return Qm_1 + lambda * (logPY - Qm_1);
 
 	}

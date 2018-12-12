@@ -162,11 +162,11 @@ namespace BM_SDE_SMC {
 
 		double BM_SDE_ModelCondDensityYgivenXevaluate(double& Y, double& X, double& sigma) {
 			if (sigma < 0) {
-				cout << "errore sigma non può essere inferiore a 0" << endl;
+				std::cout << "errore sigma non può essere inferiore a 0" << std::endl;
 				return 0.0f;
 			}
 			// cout << Y-X << "\t" << sigma << endl ;   // DEBUG
-			double pdf_gaussian = (1 / (sigma*sqrt(2 * M_PI))) * exp(-0.5 * pow((X- Y)/sigma, 2.0));
+			double pdf_gaussian = (1 / (sigma*std::sqrt(2 * M_PI))) * exp(-0.5 * std::pow((X- Y)/sigma, 2.0));
 			if (pdf_gaussian < 1e-100) {
 				pdf_gaussian = 1e-100;
 			}
