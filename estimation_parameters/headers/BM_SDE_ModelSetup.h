@@ -70,10 +70,10 @@ public:
 		mu[0] = theta[0];
 		mu[1] = theta[1];
 
-		Omega[0][0] = pow(theta[5], 2);
+		Omega[0][0] = pow(theta[2], 2);
 		Omega[0][1] = 0;
 		Omega[1][0] = 0;
-		Omega[1][1] = pow(theta[6], 2);
+		Omega[1][1] = pow(theta[3], 2);
 
 	};
 
@@ -86,10 +86,10 @@ public:
 		mu[0] = theta[0];
 		mu[1] = theta[1];
 
-		Omega[0][0] = pow(theta[5], 2);
+		Omega[0][0] = pow(theta[2], 2);
 		Omega[0][1] = 0;
 		Omega[1][0] = 0;
-		Omega[1][1] = pow(theta[6], 2);
+		Omega[1][1] = pow(theta[3], 2);
 
 	};
 
@@ -102,10 +102,10 @@ public:
 		*(par->mu) = theta[0];
 		*(par->mu + 1) = theta[1];
 
-		*(par->Omega) = pow(theta[5], 2);
+		*(par->Omega) = pow(theta[2], 2);
 		*(par->Omega + 1) = 0;
 		*(par->Omega + 2) = 0;
-		*(par->Omega + 3) = pow(theta[6], 2);
+		*(par->Omega + 3) = pow(theta[3], 2);
 
 	};
 

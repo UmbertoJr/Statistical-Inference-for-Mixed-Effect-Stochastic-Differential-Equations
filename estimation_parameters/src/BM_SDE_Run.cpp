@@ -32,7 +32,7 @@ int main() {
 	parametri.write_parameters_to_file(file_da_scrivere);
 
 
-
+	//cout << my_data::global_data.YOBSi[5][3] << endl;
 
 
 	static clock_t end = clock();  // stop per il timer e print del tempo algoritmo

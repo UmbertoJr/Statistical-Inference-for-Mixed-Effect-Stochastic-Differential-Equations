@@ -99,7 +99,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -108,7 +108,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>dlib.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -122,7 +122,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -137,7 +137,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)stats;$(SolutionDir)estimation_parameters\headers</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -154,6 +154,7 @@
     <ClInclude Include="headers\BM_getdata.h" />
     <ClInclude Include="headers\BM_SDE_ModelData.h" />
     <ClInclude Include="headers\BM_SDE_SMC.h" />
+    <ClInclude Include="headers\BM_SDE_Stochastic_Approximation.h" />
     <ClInclude Include="headers\modello_generico\BM_SDE_ModelSetup_new.h" />
     <ClInclude Include="headers\BM_SDE_ModelSetup.h" />
     <ClInclude Include="headers\BM_SDE_SAEM_Optimized.h" />
