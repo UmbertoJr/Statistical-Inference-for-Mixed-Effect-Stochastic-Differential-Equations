@@ -14,7 +14,8 @@ public:
 	double** X;
 	double **hidden_vec;
 	double *theta, *tzeta, *phi;
-
+	double * phic = new double[2];
+	double * tzetac = new double[4];
 	
 
 	Pmcmc() {
@@ -27,6 +28,8 @@ public:
 		//  delete[] X[0];  questa qui non la devo eliminare perche lo uso anche nel passaggio SAEM
 		delete X[1];
 		delete[] X;
+		delete[] phic;
+		delete[] tzetac;
 	}
 
 	void iterations(int& r) {
@@ -73,8 +76,7 @@ public:
 
 		//cout << "fuori dal smc, soggetto numero " << subj << endl;
 
-		double * phic = new double[2];
-		double * tzetac = new double[4];
+		
 		double ** Xc;
 		tzetac[2]= tzetai[2]; tzetac[3] = tzetai[3]; 
 		double acpt_rate = 0;

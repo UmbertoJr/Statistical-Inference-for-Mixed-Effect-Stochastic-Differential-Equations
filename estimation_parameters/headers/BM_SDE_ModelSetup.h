@@ -177,7 +177,7 @@ public:
 	}
 
 	// ###### queste funzioni servono per implementare il SAEM ############
-	double BM_SDE_Compute_likelihood(column_vector &theta, int m  ) {
+	double BM_SDE_Compute_likelihood(double * theta, int m  ) {
 		double logpY = 0;
 		double pYijgivenXij = 0;
 		for (int subj = 0; subj < my_data::global_data.sc_nSubjects; ++subj) {
@@ -221,17 +221,17 @@ public:
 		return logpY;
 	}
 
-	double PreviousQm(column_vector & theta, int & m, double & lambda) {
+	double PreviousQm(double * theta, int & m, double & lambda) {
 		double logPY = BM_SDE_Compute_likelihood(theta, 0);
-		std::cout << "ok 0 \n";
+		//std::cout << "ok 0 \n";
 		double q_1 = logPY;
 		double logPYm, q = q_1;
 		for (int k = 1; k < m; ++k) {
 			logPYm = BM_SDE_Compute_likelihood(theta,k);
-			std::cout << "ok "<< k <<" \n";
+			//std::cout << "ok "<< k <<" \n";
 			q = q_1 + lambda * (logPYm - q_1);
 			q_1 = q;
-			std::cout << "Q per iterazione " << k << " e' : " << q << std::endl;
+			//std::cout << "Q per iterazione " << k << " e' : " << q << std::endl;
 		}
 		return q;
 	}
@@ -280,6 +280,7 @@ public:
 		return tzetai;
 	}
 
+	/*
 	void ModelTheta2Tzeta(column_vector &theta) {
 		tzeta[0] = theta(0);
 		tzeta[1] = theta(1);
@@ -295,6 +296,8 @@ public:
 		Omega[1][1] = std::pow(theta(3), 2);
 	}
 
+	*/
+	
 	double EulerStep(double& xij_1, double&  timeij_1, double&  timeij, double* tzeta) {
 		double deltat = (timeij - timeij_1) / 10, dt;
 		double Xhat1 = xij_1;

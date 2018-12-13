@@ -3,12 +3,11 @@
 #include <vector>
 #include <BM_SDE_PMCMC.h>
 #include <random>
-#include <dlib/optimization.h>
-#include <dlib/global_optimization.h>
 #include <BM_SDE_Stochastic_Approximation.h>
 
 
-
+#define start(x) std::cout << x << std::endl
+#define iterazione(it) std::cout << "Iterazione  : " << it << std::endl
 
 namespace BM_SDE_SAEM_Optimized {
 	static void run() {
@@ -16,13 +15,7 @@ namespace BM_SDE_SAEM_Optimized {
 
 		static const int M = my_data::global_data.sc_M;
 		static const int M1 = my_data::global_data.sc_M1;
-		//double lambda;
-		column_vector theta(6);
-		for (int i = 0; i < 6; ++i) {
-			theta(i) = parametri.theta[i];
-			//std::cout << theta(i) << std::endl;
-		}
-
+		
 		// devo stare attento alla visibility di questa variabile e salvare i dati prima della fine altrimenti perdo
 		// le simulazioni...
 		//cout << "Omega " << parametri.Omega[0][0] << "\t" << parametri.Omega[1][1]  << "\t" << endl;
@@ -71,7 +64,7 @@ namespace BM_SDE_SAEM_Optimized {
 
 		}
 
-		for (int m = 1; m < 3; ++m) { // per ora faccio una sola iterazione 
+		for (int m = 1; m < 5; ++m) { // per ora faccio una sola iterazione 
 			parametri.ModelTheta2Tzeta(parametri.theta);
 
 			for (int subj = 1; subj <= my_data::global_data.sc_nSubjects; ++subj) {
@@ -89,8 +82,13 @@ namespace BM_SDE_SAEM_Optimized {
 			
 			
 			saem.add_m();
-			double Q_m = saem.Stochastic_Approximation(theta);
-			std::cout << "final Qm per iterazione " << m << " e' : " << Q_m << std::endl << std::endl;
+			//double Q_m = saem.Stochastic_Approximation(theta);
+			//std::cout << "final Qm per iterazione " << m << " e' : " << Q_m << std::endl << std::endl;
+			start("Optimization");
+			iterazione(m);
+			saem.run(30);
+			
+
 		}
 			
 

@@ -163,6 +163,7 @@ namespace BM_SDE_SMC {
 		double BM_SDE_ModelCondDensityYgivenXevaluate(double& Y, double& X, double& sigma) {
 			if (sigma < 0) {
 				std::cout << "errore sigma non può essere inferiore a 0" << std::endl;
+				system("pause");
 				return 0.0f;
 			}
 			// cout << Y-X << "\t" << sigma << endl ;   // DEBUG
