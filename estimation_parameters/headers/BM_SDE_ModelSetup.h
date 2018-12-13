@@ -177,7 +177,7 @@ public:
 	}
 
 	// ###### queste funzioni servono per implementare il SAEM ############
-	double BM_SDE_Compute_likelihood(column_vector &theta, int &m  ) {
+	double BM_SDE_Compute_likelihood(column_vector &theta, int m  ) {
 		double logpY = 0;
 		double pYijgivenXij = 0;
 		for (int subj = 0; subj < my_data::global_data.sc_nSubjects; ++subj) {
@@ -212,17 +212,28 @@ public:
 			logpYigivenXi = log(pYigivenXi);
 			logpXigivenPhii = log(pXigivenPhii);
 		
-			logpPhii = log(BM_SDE_ModelAprioriDensityPhievaluate( m, subj )); // occhiooooo phii deve essere assolutamente staccato
+			logpPhii = log(ModelAprioriDensityPhievaluate( m, subj )); // occhiooooo phii deve essere assolutamente staccato
 
 			logpY +=  (logpYigivenXi + logpXigivenPhii + logpPhii);
-			std::cout << "logpYigivenXi = " << logpYigivenXi << "\t logpXigivenPhii = " << logpXigivenPhii << "\t logpPhii = " << logpPhii << "\t logpY  = " << logpY << std::endl;
+			//std::cout << "logpYigivenXi = " << logpYigivenXi << "\t logpXigivenPhii = " << logpXigivenPhii << "\t logpPhii = " << logpPhii << "\t logpY  = " << logpY << std::endl;
 			delete[] tzetai;
 		}
 		return logpY;
 	}
 
-	double PreviousQm(column_vector & theta) {
-		return 0;
+	double PreviousQm(column_vector & theta, int & m, double & lambda) {
+		double logPY = BM_SDE_Compute_likelihood(theta, 0);
+		std::cout << "ok 0 \n";
+		double q_1 = logPY;
+		double logPYm, q = q_1;
+		for (int k = 1; k < m; ++k) {
+			logPYm = BM_SDE_Compute_likelihood(theta,k);
+			std::cout << "ok "<< k <<" \n";
+			q = q_1 + lambda * (logPYm - q_1);
+			q_1 = q;
+			std::cout << "Q per iterazione " << k << " e' : " << q << std::endl;
+		}
+		return q;
 	}
 
 
@@ -251,14 +262,14 @@ public:
 
 	double ModelAprioriDensityPhievaluate(int& m, int& subj) {
 		double * phii = PHI[m][subj];
-		std::cout << "phii[0] = " <<phii[0] << "\t phii[1] = " << phii[1] << "\t mu[0] = "<< mu[0]<< " \n";
+		//std::cout << "phii[0] = " <<phii[0] << "\t phii[1] = " << phii[1] << "\t mu[0] = "<< mu[0]<< " \n";
 		double phi_mu[2]; phi_mu[0] = phii[0] - mu[0]; phi_mu[1] = phii[1] - mu[1];
 		double foo = pow(phi_mu[0],2)* Omega[0][0] + pow(phi_mu[1], 2)* Omega[1][1];
 		double q = 1 / (Omega[0][0] * Omega[1][1] * sqrt(2 * M_PI))* exp(-foo / 2);
 		if (q == 0) {
 			q = 1.e-300;
 		}
-		std::cout << "prob = " << q<< "\t foo = "<< foo<< "\n";
+		// std::cout << "prob = " << q<< "\t foo = "<< foo<< "\n";
 		return q;
 	}
 

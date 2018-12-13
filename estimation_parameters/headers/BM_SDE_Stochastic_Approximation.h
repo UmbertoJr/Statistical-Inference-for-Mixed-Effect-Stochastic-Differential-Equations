@@ -39,7 +39,7 @@ public:
 		}
 
 		double logPY = parametri.BM_SDE_Compute_likelihood(theta, m);
-		double Qm_1 = parametri.PreviousQm(theta);
+		double Qm_1 = parametri.PreviousQm(theta, m, lambda);
 		return Qm_1 + lambda * (logPY - Qm_1);
 
 	}

@@ -20,7 +20,7 @@ namespace BM_SDE_SAEM_Optimized {
 		column_vector theta(6);
 		for (int i = 0; i < 6; ++i) {
 			theta(i) = parametri.theta[i];
-			std::cout << theta(i) << std::endl;
+			//std::cout << theta(i) << std::endl;
 		}
 
 		// devo stare attento alla visibility di questa variabile e salvare i dati prima della fine altrimenti perdo
@@ -53,7 +53,7 @@ namespace BM_SDE_SAEM_Optimized {
 			//cout << "fuori dal pmcmc, soggetto numero " << subj << endl;
 			
 			ptr_arr = hidden_sample[1];
-			std::cout << "phi sampled :\t" << ptr_arr[0] << "\t" << ptr_arr[1] << std::endl;
+			//std::cout << "phi sampled :\t" << ptr_arr[0] << "\t" << ptr_arr[1] << std::endl;
 			parametri.copy_phi_to_PHIALL(ptr_arr, 0,subj-1,0 );
 			//int start = (subj-1) * parametri.len_mu;
 			//std::cout << "phi esterno iteration  :" << 0 << "\t subj : " << subj - 1;
@@ -63,8 +63,8 @@ namespace BM_SDE_SAEM_Optimized {
 			//for (int it = 0; it < my_data::global_data.len_subj[subj - 1]; ++it) {
 				//std::cout << ptr_arr[it] << "\t" ;
 			//}
-			std::cout << std::endl;
-			std::cout << "\n######  time execution PMCMC is: " << time << "  #######" << "\n\n\n";
+			//std::cout << std::endl;
+			//std::cout << "\n######  time execution PMCMC is: " << time << "  #######" << "\n\n\n";
 
 			parametri.copy_newX_to_XALL(ptr_arr, 0, subj - 1, 0);
 			
@@ -89,8 +89,8 @@ namespace BM_SDE_SAEM_Optimized {
 			
 			
 			saem.add_m();
-			double logPY = saem.Stochastic_Approximation(theta);
-			std::cout << "logPY per iterazione " << m << " è :" << logPY << std::endl;
+			double Q_m = saem.Stochastic_Approximation(theta);
+			std::cout << "final Qm per iterazione " << m << " e' : " << Q_m << std::endl << std::endl;
 		}
 			
 
