@@ -40,7 +40,7 @@ public:
 			//std::cout << theta(i) << std::endl;
 		}
 
-		auto Stochastic_Approximation = [](const column_vector &theta)
+		auto Stochastic_Approximation = [&](const column_vector &theta)
 		/*
 			Questa funzione calcola il valore dell'approssimazione stocastica della log likelihood
 		*/
@@ -58,16 +58,16 @@ public:
 				thetai[i] = theta(i);
 			}
 			if (saem.m <= my_data::global_data.sc_M1) {
-				saem.lambda = 1;
+				lambda = 1;
 			}
 			else {
-				saem.lambda = 1 / pow((saem.m - my_data::global_data.sc_M1), 0.8);
+				lambda = 1 / pow((m - my_data::global_data.sc_M1), 0.8);
 			}
 
-			double logPY = parametri.BM_SDE_Compute_likelihood(thetai, saem.m);
-			double Qm_1 = parametri.PreviousQm(thetai, saem.m, saem.lambda);
+			double logPY = parametri.BM_SDE_Compute_likelihood(thetai, m);
+			double Qm_1 = parametri.PreviousQm(thetai, m, lambda);
 			//log_space(Qm_1); //log_line(seam.m);
-			double Qm = Qm_1 + saem.lambda * (logPY - Qm_1);
+			double Qm = Qm_1 + lambda * (logPY - Qm_1);
 			return Qm;
 
 		};
