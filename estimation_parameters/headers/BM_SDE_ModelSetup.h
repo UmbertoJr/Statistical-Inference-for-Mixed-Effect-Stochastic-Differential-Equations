@@ -159,22 +159,22 @@ public:
 			//std::cout << "pointer phi iteration :" << a << "\t subj : " << b << " \t is :" << ptr_phi + start + i << " \t valore inserito : "<<arr[i]<< "\n";
 		}
 
-	}
+	};
 
 	double value_in_PHI(int a, int b, int c) {
 		return PHI[a][b][c];
-	}
+	};
 
 	void copy_newX_to_XALL(double* arr, int a, int b, int c) {
 		int start = a * my_data::global_data.sc_nSubjects*my_data::global_data.sc_NMAXOBS + b * my_data::global_data.sc_NMAXOBS + c;
 		for (int i = 0; i < my_data::global_data.sc_NMAXOBS; i++) {
 			*(ptr_xall + start + i) = arr[i];
 		}
-	}
+	};
 
 	double value_in_XALL(int &a, int& b, int c) {
 		return XALL[a][b][c];
-	}
+	};
 
 	// ###### queste funzioni servono per implementare il SAEM ############
 	double BM_SDE_Compute_likelihood(double * theta, int m  ) {
@@ -219,7 +219,7 @@ public:
 			delete[] tzetai;
 		}
 		return logpY;
-	}
+	};
 
 	double PreviousQm(double * theta, int & m, double & lambda) {
 		double logPY = BM_SDE_Compute_likelihood(theta, 0);
@@ -234,7 +234,7 @@ public:
 			//std::cout << "Q per iterazione " << k << " e' : " << q << std::endl;
 		}
 		return q;
-	}
+	};
 
 
 
@@ -244,7 +244,7 @@ public:
 			norm_pdf = 1.e-100;
 		}
 		return norm_pdf;
-	}
+	};
 
 	double ModelTransitionDensityXevaluate(int &m , int & subj, int & time, double * tzetai) {
 		double timeij = my_data::global_data.TIMEi[subj][time], timeij_1 = my_data::global_data.TIMEi[subj][time - 1];
@@ -258,7 +258,7 @@ public:
 			p = 1.e-300;
 		}
 		return p;
-	}
+	};
 
 	double ModelAprioriDensityPhievaluate(int& m, int& subj) {
 		double * phii = PHI[m][subj];
@@ -271,14 +271,14 @@ public:
 		}
 		// std::cout << "prob = " << q<< "\t foo = "<< foo<< "\n";
 		return q;
-	}
+	};
 
 	double * ModelPhi2Tzeta_opt(int & subj, int & m) {
 		// questo passaggio serve per calcolare 
 		double * tzetai = new double[4];
 		tzetai[0] = value_in_PHI(m, subj, 0); tzetai[1] = value_in_PHI(m, subj, 1); tzetai[2] = tzeta[2]; tzetai[3] = tzetai[3];
 		return tzetai;
-	}
+	};
 
 	/*
 	void ModelTheta2Tzeta(column_vector &theta) {
@@ -315,13 +315,13 @@ public:
 		}
 		//cout << Xhat1 << "#";
 		return Xhat1;
-	}
+	};
 
 	double ModelDrift(double& X, double* tzeta) {   // non serve double& time,
 		double alpha = tzeta[0], kappa = tzeta[1];
 		double dXdt = alpha * log(kappa / X + 1)*X;
 		return dXdt;
-	}
+	};
 
 	// ###### LEGGE E SCRIVERE PARAMETRI IN FILE TXT
 	void read_parameters_from_file(std::string& namefile) {
@@ -353,10 +353,19 @@ public:
 	void write_parameters_to_file(std::string& filename) {
 		std::ofstream file(filename);
 		file << "alpha\tkappa\tomega_alpha\tomega_kappa\tbeta\tsigma\n";
-		file << alpha << "\t" << kappa << "\t" << omega_alpha << "\t" << omega_kappa << "\t" << beta << "\t" << sigma << "\n";
+		file << theta[0] << "\t" << theta[1] << "\t" << theta[2] << "\t" << theta[3] << "\t" << theta[4] << "\t" << theta[5] << "\n";
 		file.close();
 	};
 
+
+	void save_last_phi(std::string& filename) {
+		std::ofstream file(filename);
+		file << "phi_0\tphi_1\n";
+		for (int subj = 0; subj < my_data::global_data.sc_nSubjects; ++subj) {
+			file << PHI[my_data::global_data.sc_M - 1][subj][0] << "\t" << PHI[my_data::global_data.sc_M - 1][subj][1] << "\n";
+		}
+		file.close();
+	};
 		
 } parametri ;
 

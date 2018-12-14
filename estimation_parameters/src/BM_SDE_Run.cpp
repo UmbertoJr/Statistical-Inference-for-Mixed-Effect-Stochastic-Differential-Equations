@@ -5,6 +5,7 @@
 #include <BM_SDE_SAEM_Optimized.h>
 
 
+
 int main() {
 	if (directory::path.size() < 3) {
 		std::cout << "the directory where it's running the algorithm is \n"  << directory::ExePath() << std::endl << std::endl;
@@ -26,9 +27,11 @@ int main() {
 
 
 
-	std::string file_da_scrivere = "../data/parametri_modello.txt";
+	std::string file_da_scrivere = "../data/parametri_modello_stimati.txt";
 	parametri.write_parameters_to_file(file_da_scrivere);
 
+	std::string file_phi = "../data/last_phi.txt";
+	parametri.save_last_phi(file_phi);
 
 	//cout << my_data::global_data.YOBSi[5][3] << endl;
 
@@ -36,6 +39,8 @@ int main() {
 	static clock_t end = clock();  // stop per il timer e print del tempo algoritmo
 	static double time = (double) (end - start)/ CLOCKS_PER_SEC ;
 	std::cout << "\n\n######  time execution is: " << time << "  #######" << std::endl;
+
+
 
 	system("pause");
 	return 0;
