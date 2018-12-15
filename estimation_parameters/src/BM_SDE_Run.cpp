@@ -33,12 +33,14 @@ int main() {
 	std::string file_phi = "../data/last_phi.txt";
 	parametri.save_last_phi(file_phi);
 
+	std::string file_X = "../data/last_X.txt";
+	parametri.save_last_X(file_X);
 	//cout << my_data::global_data.YOBSi[5][3] << endl;
 
 
 	static clock_t end = clock();  // stop per il timer e print del tempo algoritmo
 	static double time = (double) (end - start)/ CLOCKS_PER_SEC ;
-	std::cout << "\n\n######  time execution is: " << time << "  #######" << std::endl;
+	std::cout << "\n\n######  time execution total algorithm is: " << time << "  #######" << std::endl;
 
 
 

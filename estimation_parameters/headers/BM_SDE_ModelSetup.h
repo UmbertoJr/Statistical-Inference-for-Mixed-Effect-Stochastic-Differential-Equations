@@ -280,23 +280,6 @@ public:
 		return tzetai;
 	};
 
-	/*
-	void ModelTheta2Tzeta(column_vector &theta) {
-		tzeta[0] = theta(0);
-		tzeta[1] = theta(1);
-		tzeta[2] = theta(4);
-		tzeta[3] = theta(5);
-
-		mu[0] = theta(0);
-		mu[1] = theta(1);
-
-		Omega[0][0] = std::pow(theta(2), 2);
-		Omega[0][1] = 0;
-		Omega[1][0] = 0;
-		Omega[1][1] = std::pow(theta(3), 2);
-	}
-
-	*/
 	
 	double EulerStep(double& xij_1, double&  timeij_1, double&  timeij, double* tzeta) {
 		double deltat = (timeij - timeij_1) / 10, dt;
@@ -367,5 +350,21 @@ public:
 		file.close();
 	};
 		
+	void save_last_X(std::string& filename) {
+		std::ofstream file(filename);
+		for (int subj = 0; subj < my_data::global_data.sc_nSubjects; ++subj) {
+			file << "soggetto_"<<subj<<"\t";
+		}
+		file << "\n";
+		for (int time_ = 0; time_ < my_data::global_data.sc_NMAXOBS; ++time_) {
+			for (int subj = 0; subj < my_data::global_data.sc_nSubjects; ++subj) {
+				file << XALL[my_data::global_data.sc_M - 1][subj][time_] << "\t" ;
+			}
+			file << "\n";
+		}
+		
+		file.close();
+	};
+
 } parametri ;
 

@@ -40,8 +40,8 @@ namespace my_data {
 		std::string MYOPT;
 		int PhiAll;
 		int XAll;
-		static const int sc_M = 10;  // numero di iterazioni da svolgere per SAEM... da leggere da input
-		static const int sc_M1 = 6;  // numero di iterazioni dopo il quale la constante lambda inizia a decrescere  ##### qui c'è da cambiare
+		static const int sc_M = 100;  // numero di iterazioni da svolgere per SAEM... da leggere da input
+		static const int sc_M1 = 60;  // numero di iterazioni dopo il quale la constante lambda inizia a decrescere  ##### qui c'è da cambiare
 		int NSTATEVARS;
 		int NFREEPAR;
 

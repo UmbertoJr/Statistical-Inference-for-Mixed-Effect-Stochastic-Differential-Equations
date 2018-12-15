@@ -15,6 +15,8 @@ namespace BM_SDE_SAEM_Optimized {
 
 		static const int M = my_data::global_data.sc_M;
 		static const int M1 = my_data::global_data.sc_M1;
+		static clock_t start, end;
+		static double time;
 		
 		// devo stare attento alla visibility di questa variabile e salvare i dati prima della fine altrimenti perdo
 		// le simulazioni...
@@ -35,10 +37,10 @@ namespace BM_SDE_SAEM_Optimized {
 		for (int subj = 1; subj <= my_data::global_data.sc_nSubjects; ++subj) {
 			//std::cout << "\n\nsoggetto : " << subj << "\t" <<" lunghezza x : " << my_data::global_data.len_subj[subj-1] << "\n"; //printa i risultati per debug
 
-			static clock_t start = clock();  // fa partire il timer 
+			//start = clock();  // fa partire il timer 
 			hidden_sample = pmcmc.run(subj, parametri.theta);  // le variabili tzeta vengono aggiornate in BM_SDE_ModelTheta2Tzeta
-			static clock_t end = clock();  // stop per il timer e print del tempo algoritmo
-			static double time = (double)(end - start) / CLOCKS_PER_SEC;
+			//end = clock();  // stop per il timer e print del tempo algoritmo
+			//static double time = (double)(end - start) / CLOCKS_PER_SEC;
 			
 			// devo capire cosa fare con i vettori dinamici dichiarati dento pmcmc
 			parametri.BM_SDE_ModelPhi2Tzeta(hidden_sample[1]);
@@ -64,7 +66,7 @@ namespace BM_SDE_SAEM_Optimized {
 
 		}
 
-		for (int m = 1; m < 5; ++m) { // per ora faccio una sola iterazione 
+		for (int m = 1; m < M; ++m) { // per ora faccio una sola iterazione 
 			parametri.ModelTheta2Tzeta(parametri.theta);
 
 			for (int subj = 1; subj <= my_data::global_data.sc_nSubjects; ++subj) {
@@ -86,18 +88,15 @@ namespace BM_SDE_SAEM_Optimized {
 			//std::cout << "final Qm per iterazione " << m << " e' : " << Q_m << std::endl << std::endl;
 			start("Optimization");
 			iterazione(m);
-			saem.run(30);
-			
+			start = clock();  // fa partire il timer 
+			saem.run(100);
+			end = clock();  // stop per il timer e print del tempo algoritmo
+			time = (double)(end - start) / CLOCKS_PER_SEC;
+			std::cout << "\n\n###  tempo usato per l'ottimizzazione : " << time << "  #######" << std::endl;
 
 		}
-			
-
 		
-		
-		
-
-
-		}
+	}
 	
 }
 
