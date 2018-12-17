@@ -24,10 +24,8 @@ namespace directory {
 
 namespace my_data {
 	static struct global {
-		int VRBL;
 		double PARTICLEXS;
 		double PARTICLEWS;
-		int PARMASK;
 		static const int sc_nSubjects = 6;		// numero totale di soggetti
 		static const int sc_tot_num_obs = 86;
 		double* TIME;
@@ -38,12 +36,9 @@ namespace my_data {
 		double TIMEi[sc_nSubjects][sc_NMAXOBS];
 		double YOBSi[sc_nSubjects][sc_NMAXOBS];
 		std::string MYOPT;
-		int PhiAll;
-		int XAll;
 		static const int sc_M = 100;  // numero di iterazioni da svolgere per SAEM... da leggere da input
-		static const int sc_M1 = 60;  // numero di iterazioni dopo il quale la constante lambda inizia a decrescere  ##### qui c'è da cambiare
-		int NSTATEVARS;
-		int NFREEPAR;
+		static const int sc_M1 = 50;  // numero di iterazioni dopo il quale la constante lambda inizia a decrescere  ##### qui c'è da cambiare
+		
 
 		void define_length_subjs() {
 			// questa funzione trova la lunghezza del vettore osservazione per ciascun soggetto 
@@ -78,7 +73,6 @@ namespace my_data {
 		}
 	} global_data;
 }
-
 
 
 void check_memory_alloc(double* point ) {

@@ -14,6 +14,7 @@ public:
 	double** X;
 	double **hidden_vec;
 	double *theta, *tzeta, *phi;
+	double phi0[2];
 	double * phic = new double[2];
 	double * tzetac = new double[4];
 	
@@ -27,6 +28,7 @@ public:
 		// qui libero la memoria dinamica dai risultati creati durante il SMC 
 		//  delete[] X[0];  questa qui non la devo eliminare perche lo uso anche nel passaggio SAEM
 		delete X[1];
+		delete[] X[0];
 		delete[] X;
 		delete[] phic;
 		delete[] tzetac;
@@ -41,9 +43,9 @@ public:
 	{
 		rng.seed(std::random_device()());
 		subj = Subj;
-		parametri.ModelTheta2Tzeta(thetaI); parametri.ModelTzeta2Phi();   // da sistemare
-		double* phi0 = parametri.phi;
-		
+		//  parametri.ModelTheta2Tzeta(thetaI); parametri.ModelTzeta2Phi();   // da sistemare
+		phi0[0] = parametri.theta[0];  phi0[1] = parametri.theta[1];
+		//std::cout << phi0[0] << "\t" << parametri.phi[0] << std::endl;
 		/*  // just for DEBUG
 		for (int k = 0; k < 6; ++k) {
 			cout << parametri.tzeta[k]<< endl;
@@ -55,7 +57,11 @@ public:
 		// ora bisogna creare BM_SDE_SMC
 		
 
-		double * tzetai = parametri.tzeta; // inizializa i parametri a quelli iniziali
+		double tzetai[4];
+		for (int i = 0; i < 4; ++i) {
+			tzetai[i]= parametri.tzeta[i]; // inizializa i parametri a quelli iniziali
+		}
+		
 		BM_SDE_SMC::SMC smc(subj);
 		X = smc.run(tzetai);  // controllare che i parametri vengano aggiornati
 		// OCCHIO MI DEVO RICORDARE DI CANCELLARE X POI PERCHE Cè UN VETTORE DINAMICO e anche i due puntatori al suo interno

@@ -38,7 +38,7 @@ namespace BM_SDE_SMC {
 	
 	struct SMC {
 		//double Xprototype = 1E-07;
-		static const int nStateVars = 1, K = 25;   //questa parte va inizializzata a seconda del modello
+		static const int nStateVars = 1, K = 50;   //questa parte va inizializzata a seconda del modello
 		int Ji, Subj_i;
 		float Delta = 0.5;
 		double SumWeigths, pYgivenX;
@@ -46,7 +46,6 @@ namespace BM_SDE_SMC {
 		double  Xj_1, Xj;
 		my_matrix* PARTICLEXS_0[K], *PARTICLEXS_1[K],  *ptr_PART[K];
 		double PARTICLEWS[K];
-		//std::default_random_engine generator;
 		std::mt19937 rng;
 		double * X_vec, * Tzeta;
 		
@@ -92,11 +91,10 @@ namespace BM_SDE_SMC {
 				(*ptr_PART[k]).insert_value_in_row_col(Xj, 0, 0);
 
 				//double px0 = 1;  //funzione praticamente inutile BM_SDE_ModelInitialDensityXevaluate
-				pYgivenX = BM_SDE_ModelCondDensityYgivenXevaluate(my_data::global_data.TIMEi[Subj_i][0], Xj, Tzeta[3]);
 
 				//cout << Subj_i + 1 << "\t" << k << "\t" << pYgivenX << endl;  // DEBUG
 				// qXgivenYX_1 non lo considero visto che 1
-				PARTICLEWS[k] = pYgivenX;
+				PARTICLEWS[k] = ModelCondDensityYgivenXevaluate(my_data::global_data.TIMEi[Subj_i][0], Xj, Tzeta[3]);
 				SumWeigths += PARTICLEWS[k];
 			}
 
@@ -113,11 +111,11 @@ namespace BM_SDE_SMC {
 					//cout <<"\t" << Xj_1 << " -->";
 
 					double tj = my_data::global_data.TIMEi[Subj_i][time], tj_1 = my_data::global_data.TIMEi[Subj_i][time - 1];
-					Xj = BM_SDE_ModelTransitionDensityXsample(Xj_1, tj , tj_1, Tzeta);
+					Xj = ModelTransitionDensityXsample(Xj_1, tj , tj_1, Tzeta);
 					(*ptr_PART[k]).insert_value_in_row_col(Xj, 0, time);
 					
 
-					pYgivenX = BM_SDE_ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[Subj_i][time], Xj, Tzeta[3]);
+					pYgivenX = ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[Subj_i][time], Xj, Tzeta[3]);
 					//cout << Xj << " \twith prob --> "<< pYgivenX << "\t";		// DEBUG
 					PARTICLEWS[k] = pYgivenX;
 					SumWeigths += PARTICLEWS[k];
@@ -136,7 +134,7 @@ namespace BM_SDE_SMC {
 			}
 			//cout << Subj_i + 1 << "\t" << MargDistrY << endl;
 
-			X_vec = BM_sample_X(SumWeigths, Ji);
+			X_vec = sample_X(SumWeigths, Ji);
 			double ** ptr_ret = new double*[2]; 
 			ptr_ret[0] = X_vec; ptr_ret[1] = MargDistrY;
 			// << "pointer to ret " << ptr_ret << " pointer to 0 " << ptr_ret[0] << " -> "<< (ptr_ret[0])[3] <<
@@ -145,7 +143,7 @@ namespace BM_SDE_SMC {
 
 		}
 			
-		double* BM_sample_X(double& sum, int& len_s) {
+		double* sample_X(double& sum, int& len_s) {
 			// questo passaggio è leggermente complicato devo spiegarlo bene
 			double* X  = new double[len_s];
 			int j = my_random_ptr(sum);
@@ -160,7 +158,7 @@ namespace BM_SDE_SMC {
 		}
 
 
-		double BM_SDE_ModelCondDensityYgivenXevaluate(double& Y, double& X, double& sigma) {
+		double ModelCondDensityYgivenXevaluate(double& Y, double& X, double& sigma) {
 			if (sigma < 0) {
 				std::cout << "errore sigma non può essere inferiore a 0" << std::endl;
 				system("pause");
@@ -176,9 +174,9 @@ namespace BM_SDE_SMC {
 			return pdf_gaussian;
 		}
 
-		double BM_SDE_ModelTransitionDensityXsample(double& xXj_1, double& Tj, double& Tj_1, double* tzeta) {
+		double ModelTransitionDensityXsample(double& xXj_1, double& Tj, double& Tj_1, double* tzeta) {
 			double deltatime = Tj - Tj_1;
-			double uj =	 BM_SDE_EulerStep(xXj_1, Tj_1, Tj, tzeta);
+			double uj =	 EulerStep(xXj_1, Tj_1, Tj, tzeta);
 			//cout <<"\t" << xXj_1 << " -->" << uj << "\t";
 			//cout << "fuori da euler step" << endl;
 			double sj = tzeta[2] * uj * sqrt(deltatime);
@@ -187,12 +185,12 @@ namespace BM_SDE_SMC {
 			//cout << number;
 			double xij = uj + sj * number;
 			if (xij < 1e-100) {
-				xij = BM_SDE_ModelTransitionDensityXsample(xXj_1, Tj, Tj_1, tzeta);
+				xij = ModelTransitionDensityXsample(xXj_1, Tj, Tj_1, tzeta);
 			}
 			return xij;
 		}
 
-		double BM_SDE_EulerStep(double& xij_1, double&  timeij_1, double&  timeij, double* tzeta) {  
+		double EulerStep(double& xij_1, double&  timeij_1, double&  timeij, double* tzeta) {  
 			double deltat = (timeij- timeij_1)/10,  dt;
 			double Xhat1 = xij_1;
 			double time = timeij_1;
@@ -203,7 +201,7 @@ namespace BM_SDE_SMC {
 				else {
 					dt = (timeij - time);
 				}
-				Xhat1 += BM_SDE_ModelDrift(Xhat1, tzeta) * dt;
+				Xhat1 += ModelDrift(Xhat1, tzeta) * dt;
 				time += dt;
 				//cout << time << endl;
 			}
@@ -211,7 +209,7 @@ namespace BM_SDE_SMC {
 			return Xhat1;
 		}
 
-		double BM_SDE_ModelDrift(double& X, double* tzeta) {   // non serve double& time,
+		double ModelDrift(double& X, double* tzeta) {   // non serve double& time,
 			double alpha = tzeta[0], kappa = tzeta[1];
 			double dXdt = alpha * log(kappa / X + 1)*X;
 			return dXdt;

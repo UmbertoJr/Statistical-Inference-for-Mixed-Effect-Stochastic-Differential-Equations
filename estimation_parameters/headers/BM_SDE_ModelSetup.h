@@ -56,13 +56,14 @@ public:
 			
 
 		theta[0] = alpha;       PARMIN[0] = 0.01;   PARMAX[0] = 1;
-		theta[1] = kappa;       PARMIN[1] = 1E-6;   PARMAX[1] = 1E-2;
+		theta[1] = kappa;       PARMIN[1] = 1E-6;   PARMAX[1] = 1E-3;
 		theta[2] = omega_alpha; PARMIN[2] = 0.0001; PARMAX[2] = 0.05;
 		theta[3] = omega_kappa; PARMIN[3] = 1E-5;   PARMAX[3] = 1E-2;
-		theta[4] = beta;        PARMIN[4] = 0;      PARMAX[4] = 1;
-		theta[5] = sigma;       PARMIN[5] = 0;      PARMAX[5] = 1E-2;
+		theta[4] = beta;        PARMIN[4] = 1E-10;      PARMAX[4] = 1;
+		theta[5] = sigma;       PARMIN[5] = 1E-10;      PARMAX[5] = 1E-2;
 
 	};
+
 
 	void ModelTheta2Tzeta() {
 		tzeta[0] = theta[0];
@@ -80,6 +81,7 @@ public:
 
 	};
 
+	// serve ???
 	void ModelTheta2Tzeta(double* theta) {
 		tzeta[0] = theta[0];
 		tzeta[1] = theta[1];
@@ -96,6 +98,8 @@ public:
 
 	};
 
+
+	// serve ???
 	void ModelTheta2Tzeta(par_mom* par) {
 		*(par->tzeta) = theta[0];
 		*(par->tzeta + 1) = theta[1];
@@ -144,7 +148,7 @@ public:
 		*(par->phi + 1) = tzeta[1];
 	};
 
-	//######## funzioni utili per salvare array in matric mcmc
+	//######## funzioni utili per salvare array in matric pmcmc
 	double PHI[my_data::global_data.sc_M][my_data::global_data.sc_nSubjects][len_mu];
 	double*ptr_phi = &PHI[0][0][0];
 
@@ -166,23 +170,24 @@ public:
 	};
 
 	void copy_newX_to_XALL(double* arr, int a, int b, int c) {
-		int start = a * my_data::global_data.sc_nSubjects*my_data::global_data.sc_NMAXOBS + b * my_data::global_data.sc_NMAXOBS + c;
+		//int start = a * my_data::global_data.sc_nSubjects*my_data::global_data.sc_NMAXOBS + b * my_data::global_data.sc_NMAXOBS + c;
 		for (int i = 0; i < my_data::global_data.sc_NMAXOBS; i++) {
-			*(ptr_xall + start + i) = arr[i];
+			XALL[a][b][i] = arr[i];
+			//*(ptr_xall + start + i) = arr[i];
 		}
 	};
 
-	double value_in_XALL(int &a, int& b, int c) {
+	double value_in_XALL(int a, int b, int c) {
 		return XALL[a][b][c];
 	};
 
 	// ###### queste funzioni servono per implementare il SAEM ############
-	double BM_SDE_Compute_likelihood(double * theta, int m  ) {
+	double Compute_likelihood(double * theta, int m  ) {
 		double logpY = 0;
 		double pYijgivenXij = 0;
 		for (int subj = 0; subj < my_data::global_data.sc_nSubjects; ++subj) {
-			ModelTheta2Tzeta(theta);
-			double *tzetai = ModelPhi2Tzeta_opt(subj, m);  // aggiorna tzeta con i "phi" semplati per il soggetto "subj" durante l'iterazione "m"
+			//ModelTheta2Tzeta(theta);
+			double *tzetai = ModelPhi2Tzeta_opt(subj, m, theta);  // aggiorna tzeta con i "phi" semplati per il soggetto "subj" durante l'iterazione "m"
 			
 			//double *phii = PHI[m][subj];
 			//std::cout << "iterazione : " << m << "\t soggetto : " << subj << " \t phi pointer : " << phii << " \t with value : "<< *phii<< "\n";
@@ -190,16 +195,16 @@ public:
 			double pXijgivenPhii = 1, pXigivenPhii = 1, logpYigivenXi, logpXigivenPhii, logpPhii;
 
 			double x_value = value_in_XALL(m, subj, 0);
-			double pYigivenXi = ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[subj][0], x_value);
+			double pYigivenXi = ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[subj][0], x_value, tzetai);
 
 
 			for (int time_ = 1; time_ < my_data::global_data.len_subj[subj]; ++time_) {
 				x_value = value_in_XALL(m, subj, time_);
-				pYijgivenXij = ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[subj][time_], x_value);
+				pYijgivenXij = ModelCondDensityYgivenXevaluate(my_data::global_data.YOBSi[subj][time_], x_value, tzetai);
 				pYigivenXi = pYigivenXi * pYijgivenXij;
 				//std::cout << pYijgivenXij << "\t " << pYigivenXi << std::endl;
 
-				pXijgivenPhii = ModelTransitionDensityXevaluate(m, subj, time_ , parametri.tzeta);
+				pXijgivenPhii = ModelTransitionDensityXevaluate(m, subj, time_ , tzetai);
 				pXigivenPhii = pXigivenPhii * pXijgivenPhii;
 				//std::cout << "pXigivenPhii = " << pXigivenPhii << "\t pYigivenXi = " << pYigivenXi << "\n";
 			}
@@ -212,7 +217,7 @@ public:
 			logpYigivenXi = log(pYigivenXi);
 			logpXigivenPhii = log(pXigivenPhii);
 		
-			logpPhii = log(ModelAprioriDensityPhievaluate( m, subj )); // occhiooooo phii deve essere assolutamente staccato
+			logpPhii = log(ModelAprioriDensityPhievaluate( m, subj , theta)); // occhiooooo phii deve essere assolutamente staccato
 
 			logpY +=  (logpYigivenXi + logpXigivenPhii + logpPhii);
 			//std::cout << "logpYigivenXi = " << logpYigivenXi << "\t logpXigivenPhii = " << logpXigivenPhii << "\t logpPhii = " << logpPhii << "\t logpY  = " << logpY << std::endl;
@@ -222,12 +227,12 @@ public:
 	};
 
 	double PreviousQm(double * theta, int & m, double & lambda) {
-		double logPY = BM_SDE_Compute_likelihood(theta, 0);
+		double logPY = Compute_likelihood(theta, 0);
 		//std::cout << "ok 0 \n";
 		double q_1 = logPY;
 		double logPYm, q = q_1;
 		for (int k = 1; k < m; ++k) {
-			logPYm = BM_SDE_Compute_likelihood(theta,k);
+			logPYm = Compute_likelihood(theta,k);
 			//std::cout << "ok "<< k <<" \n";
 			q = q_1 + lambda * (logPYm - q_1);
 			q_1 = q;
@@ -238,8 +243,8 @@ public:
 
 
 
-	double ModelCondDensityYgivenXevaluate(double &Yij, double& Xij) {
-		double norm_pdf = 1 / ( sqrt(2 * M_PI) * tzeta[3] ) * exp( -pow( (Yij - Xij) / tzeta[3] , 2 ) / 2);
+	double ModelCondDensityYgivenXevaluate(double &Yij, double& Xij, double * tzetai_) {
+		double norm_pdf = 1 / ( sqrt(2 * M_PI) * tzetai_[3] ) * exp( -pow( (Yij - Xij) / tzetai_[3] , 2.0 ) / 2);
 		if (norm_pdf == 0) {
 			norm_pdf = 1.e-100;
 		}
@@ -260,12 +265,12 @@ public:
 		return p;
 	};
 
-	double ModelAprioriDensityPhievaluate(int& m, int& subj) {
-		double * phii = PHI[m][subj];
+	double ModelAprioriDensityPhievaluate(int& m, int& subj, double * theta) {
+		double * phii = PHI[m][subj];   // <-- vedere se giusto
 		//std::cout << "phii[0] = " <<phii[0] << "\t phii[1] = " << phii[1] << "\t mu[0] = "<< mu[0]<< " \n";
 		double phi_mu[2]; phi_mu[0] = phii[0] - mu[0]; phi_mu[1] = phii[1] - mu[1];
-		double foo = pow(phi_mu[0],2)* Omega[0][0] + pow(phi_mu[1], 2)* Omega[1][1];
-		double q = 1 / (Omega[0][0] * Omega[1][1] * sqrt(2 * M_PI))* exp(-foo / 2);
+		double foo = pow(phi_mu[0],2)* pow(theta[2], 2) + pow(phi_mu[1], 2)* pow(theta[3], 2);
+		double q = 1 / (pow(theta[2], 2) * pow(theta[3], 2) * sqrt(2 * M_PI))* exp(-foo / 2);
 		if (q == 0) {
 			q = 1.e-300;
 		}
@@ -273,10 +278,10 @@ public:
 		return q;
 	};
 
-	double * ModelPhi2Tzeta_opt(int & subj, int & m) {
+	double * ModelPhi2Tzeta_opt(int & subj, int & m, double * theta) {
 		// questo passaggio serve per calcolare 
 		double * tzetai = new double[4];
-		tzetai[0] = value_in_PHI(m, subj, 0); tzetai[1] = value_in_PHI(m, subj, 1); tzetai[2] = tzeta[2]; tzetai[3] = tzetai[3];
+		tzetai[0] = value_in_PHI(m, subj, 0); tzetai[1] = value_in_PHI(m, subj, 1); tzetai[2] = theta[2]; tzetai[3] = theta[3];
 		return tzetai;
 	};
 
@@ -301,7 +306,7 @@ public:
 	};
 
 	double ModelDrift(double& X, double* tzeta) {   // non serve double& time,
-		double alpha = tzeta[0], kappa = tzeta[1];
+		double alpha = phi[0], kappa = phi[1];
 		double dXdt = alpha * log(kappa / X + 1)*X;
 		return dXdt;
 	};
