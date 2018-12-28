@@ -94,7 +94,7 @@ class Sequential_Monte_Carlo(dati):
     def latent_transition_sampler(self, x_t, time):
         ###   beta = theta[2]
         t_j = self.timei[time]; t_j_1 = self.timei[time-1]
-        deltatime = t_j - t_j_1
+        deltatime = (t_j - t_j_1)
         u_j = self.EulerStep(x_t, t_j_1, t_j, deltatime)
         s_j = self.theta[4] * u_j * np.sqrt(deltatime)
         x_t1 = u_j + s_j* np.random.normal()
@@ -107,12 +107,13 @@ class Sequential_Monte_Carlo(dati):
     def EulerStep(self, x_t, time0, time1, deltat):
         x_t1 = x_t
         time = time0
+        deltat /= 100
         while time < time1:
             if (time1-time)>deltat:
                 dt = deltat
             else:
                 dt = time1-time
-            x_t1 += self.ModelDrift(x_t1)
+            x_t1 += self.ModelDrift(x_t1) * dt
             time += dt
         return x_t1
     
@@ -130,7 +131,7 @@ class Particle_marginal_Metropolis_Hastings(Sequential_Monte_Carlo):
         Sequential_Monte_Carlo.__init__(self)
       
     
-    def sample_PMCMC(self, soggetto, theta):
+    def sample_PMCMC(self, soggetto, theta, phi_init):
         self.select_subj(soggetto)
         self.X_PMCMC = np.zeros((self.NI, len(self.yobsi)))
         self.phi_PMCMC = np.zeros((self.NI, 2))
@@ -144,7 +145,7 @@ class Particle_marginal_Metropolis_Hastings(Sequential_Monte_Carlo):
         
         accept = 0
         
-        phi = self.proposalPhi_sample(np.array(theta[:2]))  # vedere se cambiare...  
+        phi = phi_init          #self.proposalPhi_sample(np.array(theta[:2]))  # vedere se cambiare...  
         self.phi_PMCMC[0,:] = phi
         
         self.fit_SMC(  soggetto , theta, phi  )
@@ -160,8 +161,8 @@ class Particle_marginal_Metropolis_Hastings(Sequential_Monte_Carlo):
             X_star = self.sampling_a_path();
             marginal_star = self.marginal_y
             
-            num = (marginal_star* self.prior_phi(phi_star) * self.proposal_evaluation(phi_star, phi))
-            den = (self.marginal_pmcmc[i-1]* self.prior_phi(phi) * self.proposal_evaluation(phi, phi_star) )
+            num = (marginal_star* self.prior_phi(phi_star) * self.proposal_evaluation(phi_star, phi) + 1e-300)
+            den = (self.marginal_pmcmc[i-1]* self.prior_phi(phi) * self.proposal_evaluation(phi, phi_star) + 1e-300)
             prob_acceptance = np.min([1. , num/den ])
             
             if prob_acceptance > np.random.uniform():
@@ -176,9 +177,10 @@ class Particle_marginal_Metropolis_Hastings(Sequential_Monte_Carlo):
                 self.phi_PMCMC[i,:] = phi
                 self.marginal_pmcmc[i] = self.marginal_pmcmc[i-1]
 
-            
-        print("acceptance rate = ", accept/self.NI)
-        return [phi, X]
+        ind_max = np.argmax(self.marginal_pmcmc)
+        print("\tacceptance rate = %.4f  for subject %d"% (accept/self.NI, soggetto))
+        print("\tphi scelti: (%.3e , %.3e)  marginal y %.4e"% (self.phi_PMCMC[ind_max,0],self.phi_PMCMC[ind_max,1] ,self.marginal_pmcmc[ind_max]))
+        return [self.phi_PMCMC[ind_max,:],self.X_PMCMC[ind_max,:]]
     
     
     def proposalPhi_sample(self, prec_phi):
