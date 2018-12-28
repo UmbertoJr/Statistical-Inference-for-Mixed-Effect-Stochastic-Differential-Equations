@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm, multivariate_normal
 
+
 class dati:
     def __init__(self):
         data = np.genfromtxt('FreyerSutherland.dat')
@@ -15,15 +16,10 @@ class dati:
         self.yobsi = self.yobs[self.subj == num]
 
 class Sequential_Monte_Carlo(dati):
-    def __init__(self,  number_of_particles = 25, proposal = []):  #IDS, LDS, OD,
-        #self.initial_distr_sampler = IDS     # this is the function used to sample the initial distribution
-        #self.latent_transition_sampler = LDS   # this samples from transition distribution is used as proposal
-        #self.observed_distr = OD   # the observed error is the function used to reweight the particles
+    def __init__(self,  number_of_particles = 25):  
         dati.__init__(self)
         self.np = number_of_particles
-        if proposal:   # in caso ci siano proposals
-            self.init_prop = proposal[0]
-            self.transition_prop = proposal[1]
+        
     
     def fit_SMC(self, soggetto , theta, phi=[]):
         self.soggetto = soggetto
@@ -79,7 +75,17 @@ class Sequential_Monte_Carlo(dati):
         return self.X_tot[part, :]
     
     def initial_distr_sampler(self):
-        return 1e-7
+        ###   beta = theta[2]
+        t_j = self.timei[0]; t_j_1 = 0
+        deltatime = (t_j - t_j_1)
+        u_j = self.EulerStep(1e-7, t_j_1, t_j, deltatime)
+        s_j = self.theta[4] * u_j * np.sqrt(deltatime)
+        x_t1 = u_j + s_j* np.random.normal()
+        if x_t1 < 1e-30:
+            x_t1 = 1e-30
+        
+        return x_t1
+        
     
     def observed_distr(self, x_, t_ ):
         #foo = (x_ - self.Y[t_])/ self.theta[5]
@@ -119,19 +125,18 @@ class Sequential_Monte_Carlo(dati):
     
     def ModelDrift(self, X):
         return self.phi[0]* np.log(self.phi[1]/X)* X
-        
-        
+                
         
         
 
 class Particle_marginal_Metropolis_Hastings(Sequential_Monte_Carlo):
-    def __init__(self, number_of_iterations=100):
+    def __init__(self, number_of_iterations=300):
         self.NI = number_of_iterations
         #self.SMC = Sequential_Monte_Carlo()
         Sequential_Monte_Carlo.__init__(self)
       
     
-    def sample_PMCMC(self, soggetto, theta, phi_init):
+    def sample_PMCMC(self, soggetto, theta, phi_init=[]):
         self.select_subj(soggetto)
         self.X_PMCMC = np.zeros((self.NI, len(self.yobsi)))
         self.phi_PMCMC = np.zeros((self.NI, 2))
@@ -144,8 +149,10 @@ class Particle_marginal_Metropolis_Hastings(Sequential_Monte_Carlo):
         self.prior = multivariate_normal(self.theta[:2], O)
         
         accept = 0
-        
-        phi = phi_init          #self.proposalPhi_sample(np.array(theta[:2]))  # vedere se cambiare...  
+        if len(phi_init)==0:
+            phi = self.proposalPhi_sample(np.array(theta[:2]))  
+        else:
+            phi = phi_init          
         self.phi_PMCMC[0,:] = phi
         
         self.fit_SMC(  soggetto , theta, phi  )

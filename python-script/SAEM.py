@@ -4,9 +4,11 @@ from scipy.stats import norm, multivariate_normal
 import numpy as np
 
 class Stochasti_Approximation_Expectation_Maximization(dati):
-    def __init__(self, turni_da_ottimizzare = 15, modificare_il_lambda_a = 3):
+    def __init__(self, turni_da_ottimizzare = 100, modificare_il_lambda_a = 10):
         self.M = turni_da_ottimizzare
         self.M1 = modificare_il_lambda_a
+        self.theta_history = np.zeros((6,self.M))
+        self.log_lik_history = np.zeros(self.M)
         
         self.PMCMC = Particle_marginal_Metropolis_Hastings()  #number_of_iterations=1000
         
@@ -15,7 +17,7 @@ class Stochasti_Approximation_Expectation_Maximization(dati):
         self.PhiALL = np.zeros((self.M, 6, 2))
         self.XALL = np.zeros((self.M, 6, 18))
         
-        self.PARMIN = [0.01, 1e-5, 0.0001, 1e-6, 0.0001, 1e-5] ; self.PARMAX = [1, 1e-1, 0.5, 1, 0.5, 1e-3]
+        self.PARMIN = [0.01, 1e-5, 0.02, 1e-2, 0.0001, 0.3e-5] ; self.PARMAX = [1, 1e-1, 0.5, 0.5, 0.1, 5e-5]
         self.bounds = []
         for i in range(6):
             self.bounds.append(tuple([self.PARMIN[i], self.PARMAX[i]]))
@@ -41,9 +43,13 @@ class Stochasti_Approximation_Expectation_Maximization(dati):
             if iterazione <= self.M1:
                 #senza lambda visto che Qm non c'è
                 self.theta_choose = self.ottimizza_Log_Lik()
+                self.theta_history[:,iterazione] = self.theta_choose
+                self.log_lik_history[iterazione] = self.Compute_LogLikelihood(self.theta_choose)
             else:
                 self.lambda_ = 1/((iterazione - self.M1)**0.8)
                 self.theta_choose = self.ottimizza_con_storia()
+                self.theta_history[:,iterazione] = self.theta_choose
+                self.log_lik_history[iterazione] = self.Compute_LogLikelihood(self.theta_choose)
             
             #if iterazione==0:
              #   self.PMCMC = Particle_marginal_Metropolis_Hastings(number_of_iterations=100)
@@ -96,7 +102,8 @@ class Stochasti_Approximation_Expectation_Maximization(dati):
             self.phi_i = self.PhiALL[self.iterazione,subj_ - 1, :]
             self.X_i = self.XALL[self.iterazione, subj_ - 1, :len(self.timei)]
             
-            pYigivenXi   = self.ModelCondDensityYgivenXevaluate(self.yobsi[0], self.X_i[0], theta);  pXigivenPhii = 1
+            pYigivenXi   = self.ModelCondDensityYgivenXevaluate(self.yobsi[0], self.X_i[0], theta);  
+            pXigivenPhii = self.ModelTransitionDensityXevaluate_initial(theta)
             for i_ in range(1, len(self.timei)):
                 
                 pYijgivenXij = self.ModelCondDensityYgivenXevaluate(self.yobsi[i_], self.X_i[i_], theta) 
@@ -145,6 +152,32 @@ class Stochasti_Approximation_Expectation_Maximization(dati):
         if p==0: 
             p = 1e-300
         return p
+    
+    def ModelTransitionDensityXevaluate_initial(self, theta):
+        beta = theta[4]
+        time1 = self.timei[0]; time0 = 0
+        x_t1 = 1e-7
+        time = time0
+        deltat =  (time1 - time0)/ 100
+        while time < time1:
+            if (time1-time)>deltat:
+                dt = deltat
+            else:
+                dt = time1-time
+            x_t1 += self.ModelDrift(x_t1 )* dt
+            time += dt
+        uj = x_t1
+        sj = beta * uj * np.sqrt(self.timei[0])
+
+        p = norm.pdf(self.X_i[0] ,  uj, sj)
+        if p == 0:
+            p = 1e-300      
+            
+        #print(p, uj, sj)
+        return p
+    
+ 
+        
     
     def ModelTransitionDensityXevaluate(self, time_, theta):
         beta = theta[4]
