@@ -4,7 +4,7 @@ from scipy.stats import norm, multivariate_normal
 import numpy as np
 
 class Stochasti_Approximation_Expectation_Maximization(dati):
-    def __init__(self, turni_da_ottimizzare = 10, modificare_il_lambda_a = 5):
+    def __init__(self, turni_da_ottimizzare = 15, modificare_il_lambda_a = 3):
         self.M = turni_da_ottimizzare
         self.M1 = modificare_il_lambda_a
         
@@ -127,12 +127,11 @@ class Stochasti_Approximation_Expectation_Maximization(dati):
     def PreviousQm(self, theta):        
         current_iteration = self.iterazione
         self.iterazione = 0
-        Qm_1 = self.Compute_LogLikelihood(theta)
-        Qm = Qm_1
+        Qm = self.Compute_LogLikelihood(theta)
         for it_ in range(1, current_iteration):
             self.iterazione = it_
             logPY = self.Compute_LogLikelihood(theta)
-            Qm += self.lambda_ * (logPY - Qm_1)
+            Qm += self.lambda_ * (logPY - Qm)
         return Qm
     
     def ModelAprioriDensityPhievaluate(self, theta):
