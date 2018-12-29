@@ -4,7 +4,7 @@ from scipy.stats import norm, multivariate_normal
 import numpy as np
 
 class Stochasti_Approximation_Expectation_Maximization(dati):
-    def __init__(self, turni_da_ottimizzare = 100, modificare_il_lambda_a = 10):
+    def __init__(self, turni_da_ottimizzare = 30, modificare_il_lambda_a = 10):
         self.M = turni_da_ottimizzare
         self.M1 = modificare_il_lambda_a
         self.theta_history = np.zeros((6,self.M))
@@ -17,7 +17,7 @@ class Stochasti_Approximation_Expectation_Maximization(dati):
         self.PhiALL = np.zeros((self.M, 6, 2))
         self.XALL = np.zeros((self.M, 6, 18))
         
-        self.PARMIN = [0.01, 1e-5, 0.02, 1e-2, 0.0001, 0.3e-5] ; self.PARMAX = [1, 1e-1, 0.5, 0.5, 0.1, 5e-5]
+        self.PARMIN = [0.01, 1e-5, 0.002, 1e-4, 0.0001, 0.3e-5] ; self.PARMAX = [1, 1e-1, 0.5, 0.5, 0.3, 5e-5]
         self.bounds = []
         for i in range(6):
             self.bounds.append(tuple([self.PARMIN[i], self.PARMAX[i]]))
@@ -47,6 +47,7 @@ class Stochasti_Approximation_Expectation_Maximization(dati):
                 self.log_lik_history[iterazione] = self.Compute_LogLikelihood(self.theta_choose)
             else:
                 self.lambda_ = 1/((iterazione - self.M1)**0.8)
+                self.iterazione = iterazione
                 self.theta_choose = self.ottimizza_con_storia()
                 self.theta_history[:,iterazione] = self.theta_choose
                 self.log_lik_history[iterazione] = self.Compute_LogLikelihood(self.theta_choose)
