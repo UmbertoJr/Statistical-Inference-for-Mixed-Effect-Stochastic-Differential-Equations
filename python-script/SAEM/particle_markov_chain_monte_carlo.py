@@ -184,7 +184,7 @@ class Particle_marginal_Metropolis_Hastings(Sequential_Monte_Carlo):
                 self.phi_PMCMC[i,:] = phi
                 self.marginal_pmcmc[i] = self.marginal_pmcmc[i-1]
 
-        ind_max = np.argmax(self.marginal_pmcmc)
+        ind_max = -1 #np.argmax(self.marginal_pmcmc)
         print("\tacceptance rate = %.4f  for subject %d"% (accept/self.NI, soggetto))
         print("\tphi scelti: (%.3e , %.3e)  marginal y %.4e"% (self.phi_PMCMC[ind_max,0],self.phi_PMCMC[ind_max,1] ,self.marginal_pmcmc[ind_max]))
         return [self.phi_PMCMC[ind_max,:],self.X_PMCMC[ind_max,:]]

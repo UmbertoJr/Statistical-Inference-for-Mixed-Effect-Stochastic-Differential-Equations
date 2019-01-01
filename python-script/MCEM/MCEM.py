@@ -17,7 +17,7 @@ class Monte_Carlo_Expectation_Maximization(dati):
         self.PhiALL = np.zeros((self.MC, 6, 2))
         self.XALL = np.zeros((self.MC, 6, 18))
         
-        self.PARMIN = [0.01, 1e-5, 0.002, 1e-4, 0.0001, 0.3e-5] ; self.PARMAX = [1, 1e-1, 0.5, 0.5, 0.1, 5e-5]
+        self.PARMIN = [0.01, 1e-5, 0.002, 1e-4, 0.0001, 0.3e-5] ; self.PARMAX = [1, 1e-1, 0.5, 0.5, 0.03, 5e-5]
         self.bounds = []
         for i in range(6):
             self.bounds.append(tuple([self.PARMIN[i], self.PARMAX[i]]))
@@ -40,7 +40,7 @@ class Monte_Carlo_Expectation_Maximization(dati):
                     self.XALL[iterazione, subject-1, :len_subj] = X   #self.PMCMC.X_PMCMC[-1,:]
 
 
-
+            
             self.theta_choose = self.ottimizza_MC_approx()
             self.theta_history[:,em] = self.theta_choose
             self.log_lik_history[em] = self.MonteCarlo_Approximation(self.theta_choose)
@@ -68,7 +68,7 @@ class Monte_Carlo_Expectation_Maximization(dati):
             self.iterazione = mc_
             logPY = self.Compute_LogLikelihood(theta)
             MC_log_l += logPY
-        return Qm_1 + self.lambda_ * (logPY - Qm_1)
+        return MC_log_l/ self.MC
         
     def Compute_LogLikelihood(self, theta):
         logpY = 0
